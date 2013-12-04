@@ -1,0 +1,15 @@
+{% macro snippetModerationFilter() %}
+  {{ snippetPillStandalone('pending',
+      [
+        {
+          value: '',
+          label: 'All'
+        },
+        {
+          value: '1',
+          label: 'Pending'
+        }
+      ]
+    )
+  }}
+{% endmacro %}
