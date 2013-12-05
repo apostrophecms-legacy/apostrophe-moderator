@@ -43,7 +43,9 @@ Note that eliminating the thumbnail and using the `textOnly` option is only an e
 
 ## Adding Submission Buttons To Your Site
 
+```html
 <a href="#" data-moderator-submit-button="event">Submit Your Event</a>
+```
 
 Easy, no?
 
