@@ -35,10 +35,6 @@ moderator.Moderator = function(options, callback) {
     };
 
     self._app.all(self._action + '/' + manager._instance + '/submit', function(req, res) {
-      if (!req.user) {
-        return res.send({ 'status': 'notfound' });
-      }
-
       // Allows use of addFields, removeFields, etc. Otherwise the
       // user can edit everything which does not make much sense
 
@@ -56,7 +52,9 @@ moderator.Moderator = function(options, callback) {
         piece.submission = true;
         return async.series({
           put: function(callback) {
-            return manager.putOne(req, piece.slug, {}, piece, callback);
+            // Shut off permissions for this call so the public can
+            // submit unpublished content
+            return manager.putOne(req, piece.slug, { permissions: false }, piece, callback);
           }
         }, function(err) {
           res.send({ status: err ? 'error' : 'ok' });
@@ -71,7 +69,10 @@ moderator.Moderator = function(options, callback) {
     self.enhance(self._pages.getManager(type), options);
   });
 
-  self.pushAsset('script', 'editor', { when: 'user' });
+  // Anons are potentially allowed to submit content for moderation (that is
+  // sort of the point)
+  self.pushAsset('script', 'content', { when: 'always' });
+
   // Construct our browser side object REFACTOR
   var browserOptions = options.browser || {};
 
@@ -81,7 +82,7 @@ moderator.Moderator = function(options, callback) {
     construct: browserOptions.construct || 'AposModerator'
   };
 
-  self._apos.pushGlobalCallWhen('user', 'window.aposModerator = new @(?)', browser.construct, { action: self._action });
+  self._apos.pushGlobalCallWhen('always', 'window.aposModerator = new @(?)', browser.construct, { action: self._action });
   self.serveAssets();
 
   return process.nextTick(function() {

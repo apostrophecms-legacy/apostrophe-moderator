@@ -5,15 +5,13 @@ This component creates a public-facing interface that allows users to submit ins
 
 ## Code Status
 
-Currently this module only works for users who are already logged in.
+The public can now submit content much as any admin would! Hooray! The new `apos.requireScene` browser-side javascript method makes this possible by loading the needed JavaScript, CSS and DOM template assets on demand.
 
-"But I'm trying to receive submissions from the public! That's the whole point!" Yes, we know, so we don't consider this module quite ready for prime time yet.
-
-Our next step is to implement an appropriate level of guest access without the need for an account.
+However, we still need to address access to the media library so that anon folks can upload new media but can't manage or select existing media. In particular we need to do this without giving them access to the media of other anons. A specific permissions level for this purpose must be concocted.
 
 ## TODO
 
-* Currently users must be logged in. Address that, without giving guests access to manage other guests' files.
+* Address the issue of uploading media when you don't have an account. Right now you can use `textOnly: true` for your body area and remove your thumbnail area, so the module is already useful, but it won't be done until you can also submit media.
 * The provided filter is effective, but we would prefer to build a classy modal dedicated to moderation which displays a normal view of each article, and consider making the approval process more natural than setting the "published" flag and clicking "save."
 
 ## Configuration
