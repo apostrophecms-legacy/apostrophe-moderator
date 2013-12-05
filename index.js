@@ -18,6 +18,9 @@ moderator.Moderator = function(options, callback) {
 
   self._apos.mixinModuleAssets(self, 'moderator', __dirname, options);
 
+  // Allow the public to upload media
+  self._apos.setAnonUploads(true);
+
   self.enhance = function(manager, options) {
 
     // Add a filter that displays as-yet-unpublished user-submitted content

@@ -5,14 +5,11 @@ This component creates a public-facing interface that allows users to submit ins
 
 ## Code Status
 
-The public can now submit content much as any admin would! Hooray! The new `apos.requireScene` browser-side javascript method makes this possible by loading the needed JavaScript, CSS and DOM template assets on demand.
-
-However, we still need to address access to the media library so that anon folks can upload new media but can't manage or select existing media. In particular we need to do this without giving them access to the media of other anons. A specific permissions level for this purpose must be concocted.
+This module now has a reasonably complete feature set and is on track to be used in production on our own sites.
 
 ## TODO
 
-* Address the issue of uploading media when you don't have an account. Right now you can use `textOnly: true` for your body area and remove your thumbnail area, so the module is already useful, but it won't be done until you can also submit media.
-* The provided filter is effective, but we would prefer to build a classy modal dedicated to moderation which displays a normal view of each article, and consider making the approval process more natural than setting the "published" flag and clicking "save."
+* The provided filter for locating newly submitted material in the "manage" modal dialogs is effective, but we would prefer to build a classy modal dedicated to moderation which displays a normal view of each article, and consider making the approval process a little slicker than the current routine of clicking "pending," clicking to edit each item, switching "published" to "yes" and clicking "save."
 
 ## Configuration
 
@@ -82,7 +79,9 @@ Note the use of `schemaFields` to render all the fields in the form without a fu
 
 ## Approving Submitted Content
 
-All submitted content is initially unpublished. In order for admins to effectively moderate incoming content, you will need to override the `manage.html` template of the module in question and add a call to `snippetModerationFilter()`. Be sure to include the appropriate macros file first, like this:
+All submitted content is initially unpublished. In order for admins to effectively moderate incoming content, you will need to override the `manage.html` template of the module in question and add a call to `snippetModerationFilter()`. This allows admins to click "Pending" to see just the as-yet-unapproved content. Then admins can edit those items and set "Published" to "Yes."
+
+Be sure to include the appropriate macros file first in `manage.html`, like this:
 
 ```jinja
 {% include 'snippetMacros.html' %}
@@ -130,9 +129,8 @@ All submitted content is initially unpublished. In order for admins to effective
 </div>
 ```
 
-Now admins can select "All" to see all events, or "Pending" to see user-submitted events that are not yet published.
+Again, admins can now select "All" to see all events, or "Pending" to see user-submitted events that are not yet published.
 
 To publish an event an admin simply marks it published.
 
 ... And that's it! Your site now supports user-submitted content. Enjoy.
-
