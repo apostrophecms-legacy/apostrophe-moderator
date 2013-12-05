@@ -81,7 +81,9 @@ Note the use of `schemaFields` to render all the fields in the form without a fu
 
 ## Approving Submitted Content
 
-All submitted content is initially unpublished. In order for admins to effectively moderate incoming content, you will need to override the `manage.html` template of the module in question and add a call to `snippetModerationFilter()`. This allows admins to click "Pending" to see just the as-yet-unapproved content. Then admins can edit those items and set "Published" to "Yes."
+All submitted content is initially unpublished. In order for admins to effectively moderate incoming content, you will need to override the `manage.html` template of the module in question and add a call to `snippetModerationFilter()`. You'll put your override in `lib/modules/apostrophe-events/views/manage.html`, as usual when overriding templates in Apostrophe.
+
+This allows admins to click "Pending" to see just the as-yet-unapproved content. Then admins can edit those items and set "Published" to "Yes."
 
 Be sure to include the appropriate macros file first in `manage.html`, like this:
 
