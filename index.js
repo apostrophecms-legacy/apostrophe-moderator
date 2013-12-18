@@ -37,6 +37,17 @@ moderator.Moderator = function(options, callback) {
       return superGet(req, userCriteria, options, mainCallback);
     };
 
+    // Make sure that in any situation where the user is able to edit
+    // an existing piece, that piece is marked with the "submission" flag
+    // so we can find it via the moderation filter later. This takes care
+    // of edits made via "new" or "edit" by a user who has an account and
+    // the ability to edit their work but not the privilege of directly
+    // publishing it
+    var superPublishBlocked = manager.publishBlocked;
+    manager.publishBlocked = function(piece) {
+      piece.submission = true;
+    };
+
     self._app.all(self._action + '/' + manager._instance + '/submit', function(req, res) {
       // Allows use of addFields, removeFields, etc. Otherwise the
       // user can edit everything which does not make much sense
@@ -54,6 +65,11 @@ moderator.Moderator = function(options, callback) {
         piece.slug = self._apos.slugify(piece.title);
         piece.submission = true;
         return async.series({
+          // Make sure they will be able to edit it someday
+          authorAsEditor: function(callback) {
+            manager.authorAsEditor(req, piece);
+            return callback(null);
+          },
           put: function(callback) {
             // Shut off permissions for this call so the public can
             // submit unpublished content
@@ -73,11 +89,16 @@ moderator.Moderator = function(options, callback) {
   });
 
   // Anons are potentially allowed to submit content for moderation (that is
-  // sort of the point)
+  // pretty much the entire point)
   self.pushAsset('script', 'content', { when: 'always' });
 
-  // Construct our browser side object REFACTOR
-  var browserOptions = options.browser || {};
+  // Construct our browser side object
+  var browserOptions = {};
+  extend(true, browserOptions, options.browser || {});
+  _.defaults(browserOptions, {
+    action: self._action,
+    types: options.types
+  });
 
   // The option can't be .constructor because that has a special meaning
   // in a javascript object (not the one you'd expect, either) http://stackoverflow.com/questions/4012998/what-it-the-significance-of-the-javascript-constructor-property
@@ -85,7 +106,7 @@ moderator.Moderator = function(options, callback) {
     construct: browserOptions.construct || 'AposModerator'
   };
 
-  self._apos.pushGlobalCallWhen('always', 'window.aposModerator = new @(?)', browser.construct, { action: self._action });
+  self._apos.pushGlobalCallWhen('always', 'window.aposModerator = new @(?)', browser.construct, browserOptions);
   self.serveAssets();
 
   return process.nextTick(function() {
