@@ -23,7 +23,11 @@ function AposModerator(options) {
             return aposSchemas.populateFields($piece, fields, piece, callback);
           },
           save: function(callback) {
-            return aposSchemas.convertFields($piece, fields, piece, function() {
+            return aposSchemas.convertFields($piece, fields, piece, function(err) {
+              if (err) {
+                alert('Please complete all required fields.');
+                return;
+              }
               $.jsonCall(url, piece, function(result) {
                 if (result.status !== 'ok') {
                   alert('An error occurred. Please try again.');
