@@ -23,14 +23,35 @@ function AposModerator(options) {
             return aposSchemas.populateFields($piece, fields, piece, callback);
           },
           save: function(callback) {
-            return aposSchemas.convertFields($piece, fields, piece, function() {
-              $.jsonCall(url, piece, function(result) {
-                if (result.status !== 'ok') {
-                  alert('An error occurred. Please try again.');
-                  return callback('error');
+            return aposSchemas.convertFields($piece, fields, piece, function(err) {
+              if (err) {
+                // Balk on an error such as "required"
+                aposSchemas.scrollToError($piece);
+                return;
+              }
+              var manager = aposPages.getManager(instance);
+              var customValidate;
+              if (manager) {
+                customValidate = manager._validate;
+              } else {
+                customValidate = function($el, data, action, callback) {
+                  return callback(null);
+                };
+              }
+              return customValidate($piece, piece, 'insert', function(err) {
+                if (err) {
+                  // Balk on a custom error
+                  aposSchemas.scrollToError($piece);
+                  return;
                 }
-                alert('Thank you for your submission! It will be reviewed before it appears on the site.');
-                return callback(null);
+                $.jsonCall(url, piece, function(result) {
+                  if (result.status !== 'ok') {
+                    alert('An error occurred. Please try again.');
+                    return callback('error');
+                  }
+                  alert('Thank you for your submission! It will be reviewed before it appears on the site.');
+                  return callback(null);
+                });
               });
             });
           }

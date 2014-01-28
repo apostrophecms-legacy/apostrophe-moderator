@@ -138,3 +138,9 @@ Again, admins can now select "All" to see all events, or "Pending" to see user-s
 To publish an event an admin simply marks it published.
 
 ... And that's it! Your site now supports user-submitted content. Enjoy.
+
+## Validation
+
+The `required` option, and any other validation options supported by `apostrophe-schemas`, are supported by `apostrophe-moderator`.
+
+If you need more than that, [implement a `validate` callback in your browser-side snippet subclass](https://github.com/punkave/apostrophe-snippets#sending-extra-properties-to-the-server-subclassing-on-the-browser-side). Your `validate` callback will be fired with the `insert` action just as it would be when an administrator creates a new snippet.
