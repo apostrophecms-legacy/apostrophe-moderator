@@ -3,9 +3,9 @@ apostrophe-moderator
 
 This component creates a public-facing interface that allows users to submit instances of existing apostrophe classes to the site's database.
 
-## Code Status
+### Code Stability
 
-This module now has a reasonably complete feature set and is on track to be used in production on our own sites.
+0.4.x releases receive bug fixes only. For active development, follow 0.5.x releases and/or the master branch in github.
 
 ## TODO
 
