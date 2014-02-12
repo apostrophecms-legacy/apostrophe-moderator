@@ -144,3 +144,82 @@ To publish an event an admin simply marks it published.
 The `required` option, and any other validation options supported by `apostrophe-schemas`, are supported by `apostrophe-moderator`.
 
 If you need more than that, [implement a `validate` callback in your browser-side snippet subclass](https://github.com/punkave/apostrophe-snippets#sending-extra-properties-to-the-server-subclassing-on-the-browser-side). Your `validate` callback will be fired with the `insert` action just as it would be when an administrator creates a new snippet.
+
+## Notifications
+
+Sometimes you'll want to do something special when a submission is received, published, or rejected (moved to the trash without ever having been published).
+
+This is easy to do! The module for the content you're moderating just has to include appropriate methods, and apostrophe-moderator will automatically call them.
+
+Here is an example of a `lib/modules/apostrophe-events/index.js` file that sends email when these events happen:
+
+```javascript
+module.exports = events;
+
+function events(options, callback) {
+  return new events.Events(options, callback);
+}
+
+events.Events = function(options, callback) {
+  var self = this;
+
+  module.exports.Super.call(this, options, null);
+
+  self._apos.mixinModuleEmail(self);
+
+  self.afterRejection = function(req, snippet, callback) {
+    return sendAuthorNotice(req, snippet, 'Your event submission has been rejected', 'rejected', callback);
+  };
+
+  self.afterAcceptance = function(req, snippet, callback) {
+    return sendAuthorNotice(req, snippet, 'Your event submission has been accepted for publication!', 'accepted', callback);
+  };
+
+  self.afterSubmission = function(req, snippet, callback) {
+    return sendAuthorNotice(req, snippet, 'Your event submission has been received for review', 'submitted', callback);
+  };
+
+  function sendAuthorNotice(req, snippet, subject, template, callback) {
+    // bypass permissions so we're allowed to fetch them even if they are unpublished
+    return self._pages.getManager('person').getOne(req, { _id: snippet.authorId }, { permissions: false }, function(err, author) {
+      if (err) {
+        console.error('error getting author for notice, nonfatal');
+        return callback(null);
+      }
+      if (!author) {
+        // No author, again, not fatal
+        console.error('no author for notice');
+        return callback(null);
+      }
+      return self.email(req, author,
+        subject, template,
+        { event: snippet }, callback);
+    });
+  }
+
+  // Must wait at least until next tick to invoke callback!
+  if (callback) {
+    process.nextTick(function() { return callback(null); });
+  }
+
+};
+```
+
+The tricky bit is getting hold of the original author's name and email address so you know where to send the email. If you are requiring people to log in before submitting content, you can take advantage of `authorId`, a property that `apostrophe-moderator` adds to each submission, to fetch the appropriate person object as shown above. If you are not requiring logins, then you'll need to make sure that full name and email address fields are part of the schema for each submission, and just use those:
+
+```javascript
+return self.email(req, { fullName: snippet.contactName, email: snippet.contactEmail }, ...)
+```
+
+Note the use of `mixinModuleEmail` to make the `self.email` method available:
+
+```javascript
+  // Initialize the superclass...
+  module.exports.Super.call(this, options, null);
+
+  // Now we can mix in email
+  self._apos.mixinModuleEmail(self);
+```
+
+Email message templates named `rejection.html` and `rejection.txt` must exist in `lib/modules/apostrophe-events/views`, and likewise for `accepted` and `submitted`.
+
