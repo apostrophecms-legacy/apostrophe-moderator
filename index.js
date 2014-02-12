@@ -37,6 +37,55 @@ moderator.Moderator = function(options, callback) {
       return superGet(req, userCriteria, options, mainCallback);
     };
 
+    // If manager.afterAcceptance exists, call it after first publication
+    // of a particular submitted item. If manager.afterRejection exists,
+    // call it when a particular submitted item that has never been
+    // published is moved to the trash.
+
+    var superBeforePutOne = manager.beforePutOne;
+    manager.beforePutOne = function(req, slug, options, snippet, callback) {
+      var firstPublication;
+      if (snippet.published && (!snippet.publishedOnce)) {
+        snippet.publishedOnce = true;
+        firstPublication = true;
+      }
+      return async.series({
+        afterAcceptance: function(callback) {
+          if (snippet.submission && firstPublication && manager.afterAcceptance) {
+            return manager.afterAcceptance(req, snippet, callback);
+          }
+          return callback(null);
+        }
+      }, function(err) {
+        if (err) {
+          return callback(err);
+        }
+        return superBeforePutOne(req, slug, options, snippet, callback);
+      });
+    };
+
+    var superBeforeTrash = manager.beforeTrash;
+    manager.beforeTrash = function(req, snippet, trash, callback) {
+      return async.series({
+        afterRejection: function(callback) {
+          if (snippet.submission && (!snippet.publishedOnce) && trash && manager.afterRejection) {
+            return manager.afterRejection(req, snippet, callback);
+          } else {
+            return callback(null);
+          }
+        }
+      }, function(err) {
+        if (err) {
+          return callback(err);
+        }
+        // Does not always exist (TODO: in 0.5 fix that for convenience)
+        if (superBeforeTrash) {
+          return superBeforeTrash(req, trash, snippet, callback);
+        }
+        return callback(null);
+      });
+    };
+
     // Make sure that in any situation where the user is able to edit
     // an existing piece, that piece is marked with the "submission" flag
     // so we can find it via the moderation filter later. This takes care
@@ -59,11 +108,15 @@ moderator.Moderator = function(options, callback) {
       var subsetFields = self._schemas.refine(manager.schema, options);
 
       var piece = manager.newInstance();
+      // published is often set to true by default for snippets created
+      // by other means, we need to make sure it doesn't sneak by here
+      delete piece.published;
 
       if (req.method === 'POST') {
         self._schemas.convertFields(subsetFields, 'form', req.body, piece);
         piece.slug = self._apos.slugify(piece.title);
         piece.submission = true;
+        piece.authorId = ((req.user && req.user._id) || 'anon');
         return async.series({
           // Make sure they will be able to edit it someday
           authorAsEditor: function(callback) {
@@ -74,6 +127,12 @@ moderator.Moderator = function(options, callback) {
             // Shut off permissions for this call so the public can
             // submit unpublished content
             return manager.putOne(req, piece.slug, { permissions: false }, piece, callback);
+          },
+          notify: function(callback) {
+            if (!manager.afterSubmission) {
+              return callback(null);
+            }
+            return manager.afterSubmission(req, piece, callback);
           }
         }, function(err) {
           res.send({ status: err ? 'error' : 'ok' });
