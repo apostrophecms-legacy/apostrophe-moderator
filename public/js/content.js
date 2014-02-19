@@ -99,9 +99,14 @@ function AposModerator(options) {
 
   // TODO: it would be better to render new.html and edit.html differently for
   // unprivileged users on the server side every time, taking into account
-  // a suitable schema subset
+  // a suitable schema subset. Except, we don't want them to accidentally trash
+  // anything that admins did. Hmm.
 
   apos.afterYield(function() {
+    // Don't crash when there is no one logged in
+    if (apos.scene !== 'user') {
+      return;
+    }
     _.each(options.types, function(options, type) {
       if (!self.canPublish(type)) {
         var manager = aposPages.getManager(type);
