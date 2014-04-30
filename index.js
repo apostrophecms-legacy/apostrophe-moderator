@@ -113,13 +113,15 @@ moderator.Moderator = function(options, callback) {
       delete piece.published;
 
       if (req.method === 'POST') {
-        self._schemas.convertFields(subsetFields, 'form', req.body, piece);
-        piece.slug = self._apos.slugify(piece.title);
-        piece.submission = true;
-        piece.authorId = ((req.user && req.user._id) || 'anon');
         return async.series({
+          convert: function(callback) {
+            self._schemas.convertFields(req, subsetFields, 'form', req.body, piece, callback);
+          },
           // Make sure they will be able to edit it someday
           authorAsEditor: function(callback) {
+            piece.slug = self._apos.slugify(piece.title);
+            piece.submission = true;
+            piece.authorId = ((req.user && req.user._id) || 'anon');
             manager.authorAsEditor(req, piece);
             return callback(null);
           },
