@@ -168,7 +168,6 @@ moderator.Moderator = function(options, callback) {
   };
 
   self._apos.pushGlobalCallWhen('always', 'window.aposModerator = new @(?)', browser.construct, browserOptions);
-  self.serveAssets();
 
   return process.nextTick(function() {
     return callback(null);
