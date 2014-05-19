@@ -19,7 +19,7 @@ moderator.Moderator = function(options, callback) {
   self._apos.mixinModuleAssets(self, 'moderator', __dirname, options);
 
   // Allow the public to upload media
-  self._apos.setAnonUploads(true);
+  self._apos.permissions.addPublic('edit-file');
 
   self.enhance = function(manager, options) {
 
