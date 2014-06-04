@@ -1,6 +1,6 @@
 {
   "name": "apostrophe-moderator",
-  "version": "0.5.5",
+  "version": "0.5.6",
   "description": "This component creates a public-facing interface that allows users to submit instances of existing apostrophe classes to the site's database.",
   "main": "index.js",
   "scripts": {
