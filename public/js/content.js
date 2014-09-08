@@ -18,6 +18,10 @@ function AposModerator(options) {
         var piece = data.piece;
         var fields = data.fields;
         var $piece = $(data.template);
+        // bc with existing submissionEditor.html code which assumes apos-template
+        // is needed for these. Without this fix selectize avoids the modal because
+        // it thinks it's messing with a template
+        $piece.removeClass('apos-template');
         apos.modal($piece, {
           init: function(callback) {
             return aposSchemas.populateFields($piece, fields, piece, callback);
