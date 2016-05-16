@@ -12,8 +12,7 @@ function AposModerator(options) {
       var url = self._action + '/' + instance + '/submit';
       $.getJSON(url, function(data) {
         if (data.status !== 'ok') {
-          alert('A server error occurred.');
-          return;
+          return self.serverError();
         }
         var piece = data.piece;
         var fields = data.fields;
@@ -50,10 +49,10 @@ function AposModerator(options) {
                 }
                 $.jsonCall(url, piece, function(result) {
                   if (result.status !== 'ok') {
-                    alert('An error occurred. Please try again.');
+                    self.submitError(result);
                     return callback('error');
                   }
-                  alert('Thank you for your submission! It will be reviewed before it appears on the site.');
+                  self.thankYou(piece);
                   return callback(null);
                 });
               });
@@ -90,6 +89,18 @@ function AposModerator(options) {
       return true;
     }
     return false;
+  };
+
+  self.serverError = function() {
+    alert('A server error occurred.');
+  };
+
+  self.submitError = function() {
+    alert('An error occurred. Please try again.');
+  };
+
+  self.thankYou = function() {
+    alert('Thank you for your submission! It will be reviewed before it appears on the site.');
   };
 
   // Users with real accounts may also be able to use the "Manage Events" and

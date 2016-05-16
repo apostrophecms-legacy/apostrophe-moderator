@@ -223,3 +223,33 @@ Note the use of `mixinModuleEmail` to make the `self.email` method available:
 
 Email message templates named `rejection.html` and `rejection.txt` must exist in `lib/modules/apostrophe-events/views`, and likewise for `accepted` and `submitted`.
 
+## Overriding methods
+
+There are a few methods, such as `submitError`, `serverError` and `thankYou`, that can be overridden to change behavior. This is what a project-level, browser-side subclass that changes these messages looks like:
+
+```javascript
+(function() {
+
+  var Super = AposModerator;
+
+  function MyAposModerator(options) {
+    var self = this;
+    Super.call(this, options);
+
+    self.serverError = function() {
+      alert('A server error occurred, oh dear.');
+    };
+
+    self.submitError = function() {
+      alert('An error occurred. Please try again. Oh dear.');
+    };
+
+    self.thankYou = function() {
+      alert('Thank you for your submission! It will be reviewed before it appears on the site. Oh my.');
+    };
+  }
+
+  AposModerator = MyAposModerator;
+
+})();
+```
